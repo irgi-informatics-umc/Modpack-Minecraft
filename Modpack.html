@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gyzenn Modpack Hub | Premium Minecraft Modpacks</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Animations -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        midnight: '#0b1120',
+                        slate: { 850: '#151f32', 900: '#0f172a' },
+                        electric: '#0ea5e9',
+                        emerald: '#10b981',
+                        accentP: '#a855f7', // Purple
+                        accentO: '#f97316', // Orange
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
+                        'glow': '0 0 20px rgba(14, 165, 233, 0.4)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .dark body {
+            background-color: #0b1120;
+            color: #f8fafc;
+        }
+        
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+
+        /* Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+        }
+        .dark .glass {
+            background: rgba(21, 31, 50, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        .glass-card {
+            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .glass-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(14, 165, 233, 0.4);
+            box-shadow: 0 10px 40px -10px rgba(14, 165, 233, 0.2);
+        }
+
+        .text-gradient {
+            background: linear-gradient(to right, #0ea5e9, #a855f7, #f97316);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% auto;
+            animation: gradientMove 5s linear infinite;
+        }
+        
+        @keyframes gradientMove {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+
+        /* Modal Overlay */
+        #modpack-modal {
+            backdrop-filter: blur(8px);
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            transform: scale(0.95);
+            opacity: 0;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+        }
+        #modpack-modal.show .modal-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        /* Toast */
+        #toast-container {
+            position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .toast {
+            transform: translateX(120%);
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.4s;
+        }
+        .toast.show { transform: translateX(0); }
+
+        #back-to-top {
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease, transform 0.3s ease;
+            transform: translateY(20px);
+        }
+        #back-to-top.visible {
+            opacity: 1; pointer-events: auto; transform: translateY(0);
+        }
+
+        /* Mobile Overlay & Drawer (Redesigned) */
+        body.menu-open { overflow: hidden; }
+
+        #mobile-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            opacity: 0; visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 45;
+        }
+        #mobile-overlay.show { opacity: 1; visibility: visible; }
+
+        #mobile-drawer {
+            position: fixed; 
+            top: 12px; left: 12px;
+            width: min(78vw, 320px); 
+            height: calc(100vh - 24px);
+            border-radius: 24px;
+            transform: translateX(calc(-100% - 24px));
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 50;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex; flex-direction: column;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+        .dark #mobile-drawer {
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        #mobile-drawer.open { transform: translateX(0); }
+
+        .mobile-link {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 16px; border-radius: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .mobile-link:hover {
+            background-color: rgba(14, 165, 233, 0.1);
+            color: #0ea5e9 !important;
+            transform: translateX(4px);
+        }
+        .mobile-link.active {
+            background: linear-gradient(135deg, #3b82f6, #0ea5e9);
+            color: white !important;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+        }
+        .mobile-link.active:hover {
+            transform: none; /* Disable shift on active items */
+        }
+    </style>
+</head>
+<body class="antialiased relative overflow-x-hidden">
+
+    <!-- Background Glows -->
+    <div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-electric/10 blur-[150px]"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-accentP/10 blur-[150px]"></div>
+        <div class="absolute top-[40%] right-[-20%] w-[30%] h-[30%] rounded-full bg-accentO/5 blur-[120px]"></div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-40 glass border-t-0 border-x-0 rounded-none bg-white/70 dark:bg-midnight/70">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 relative">
+                
+                <!-- Mobile Menu Button (Left) -->
+                <div class="md:hidden flex items-center absolute left-0 z-10">
+                    <button id="mobile-menu-btn" class="p-2 focus:outline-none text-slate-700 dark:text-slate-300" aria-label="Open mobile menu">
+                        <i class="fa-solid fa-bars text-2xl"></i>
+                    </button>
+                </div>
+
+                <!-- Logo (Centered on Mobile, Left on Desktop) -->
+                <div class="flex items-center gap-3 cursor-pointer mx-auto md:mx-0 z-0" onclick="window.scrollTo(0,0)">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-electric to-accentP flex items-center justify-center shadow-glow text-white">
+                        <i class="fa-solid fa-cube text-xl"></i>
+                    </div>
+                    <span class="font-bold text-xl tracking-tight">Gyzenn <span class="text-electric">Hub</span></span>
+                </div>
+                
+                <!-- Desktop Links -->
+                <div class="hidden md:flex items-center space-x-2">
+                    <a href="#home" class="px-4 py-2 rounded-lg text-sm font-medium hover:text-electric transition-colors">Home</a>
+                    <a href="#modpacks" class="px-4 py-2 rounded-lg text-sm font-medium hover:text-electric transition-colors">Modpacks</a>
+                    <a href="#faq" class="px-4 py-2 rounded-lg text-sm font-medium hover:text-electric transition-colors">FAQ</a>
+                    <a href="#community" class="px-4 py-2 rounded-lg text-sm font-medium hover:text-electric transition-colors">Community</a>
+                    
+                    <div class="w-px h-6 bg-slate-300 dark:bg-slate-700 mx-2"></div>
+                    
+                    <button id="theme-toggle" class="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-white/10 transition-all">
+                        <i class="fa-solid fa-moon dark:hidden text-lg text-slate-700"></i>
+                        <i class="fa-solid fa-sun hidden dark:inline text-yellow-400 text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Mobile Theme Toggle (Right) -->
+                <div class="md:hidden flex items-center absolute right-0 z-10">
+                    <button id="mobile-theme-toggle" class="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-white/10 transition-all" aria-label="Toggle theme">
+                        <i class="fa-solid fa-moon dark:hidden text-slate-700"></i>
+                        <i class="fa-solid fa-sun hidden dark:inline text-yellow-400"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Overlay -->
+    <div id="mobile-overlay"></div>
+
+    <!-- Mobile Drawer (Redesigned Floating Card) -->
+    <div id="mobile-drawer" aria-hidden="true">
+        <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-electric to-accentP flex items-center justify-center shadow-glow text-white text-sm">
+                    <i class="fa-solid fa-cube"></i>
+                </div>
+                <span class="font-bold text-lg tracking-tight">Gyzenn Hub</span>
+            </div>
+            <button id="close-drawer-btn" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 text-slate-500 hover:text-white hover:bg-red-500 transition-colors" aria-label="Close menu">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        
+        <div class="flex flex-col gap-2 flex-grow">
+            <!-- Active State Link -->
+            <a href="#home" class="mobile-link active text-slate-700 dark:text-slate-300">
+                <i class="fa-solid fa-house w-5 text-center"></i> Home
+            </a>
+            <a href="#modpacks" class="mobile-link text-slate-700 dark:text-slate-300">
+                <i class="fa-solid fa-layer-group w-5 text-center"></i> Modpacks
+            </a>
+            <a href="#faq" class="mobile-link text-slate-700 dark:text-slate-300">
+                <i class="fa-solid fa-circle-question w-5 text-center"></i> FAQ
+            </a>
+            <a href="#community" class="mobile-link text-slate-700 dark:text-slate-300">
+                <i class="fa-solid fa-users w-5 text-center"></i> Community
+            </a>
+        </div>
+        
+        <!-- Drawer Footer Card -->
+        <div class="mt-auto pt-6 border-t border-slate-200 dark:border-white/10">
+            <p class="text-xs text-slate-500 mb-3 text-center">Join Our Community</p>
+            <a href="https://whatsapp.com/channel/0029VbBhyH347Xe8WNtwwL2j" target="_blank" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald/10 text-emerald rounded-xl font-bold hover:bg-emerald hover:text-white transition-all shadow-sm">
+                <i class="fa-brands fa-whatsapp text-lg"></i> WhatsApp
+            </a>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <header id="home" class="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
+        <div data-aos="zoom-out" data-aos-duration="800">
+            <span class="inline-block py-1 px-3 rounded-full bg-emerald/10 border border-emerald/20 text-emerald text-sm font-semibold mb-6 flex items-center justify-center gap-2 max-w-fit mx-auto">
+                <i class="fa-solid fa-check-circle"></i> Android Optimized Modpacks
+            </span>
+            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-tight">
+                Premium Minecraft <br class="hidden md:block"/>
+                <span class="text-gradient">Modpacks by Gyzenn</span>
+            </h1>
+            <p class="max-w-2xl mx-auto text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-10 leading-relaxed">
+                Curated Minecraft modpacks with performance tweaks, graphics enhancements, and optimized configurations tested on real devices for the ultimate mobile and PC experience.
+            </p>
+            
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="#modpacks" class="px-8 py-4 bg-electric hover:bg-blue-600 text-white rounded-xl font-bold transition-all shadow-glow hover:-translate-y-1 flex items-center justify-center gap-2 text-lg">
+                    <i class="fa-solid fa-layer-group"></i> Browse Modpacks
+                </a>
+                <a href="https://whatsapp.com/channel/0029VbBhyH347Xe8WNtwwL2j" target="_blank" class="px-8 py-4 glass hover:bg-white/40 dark:hover:bg-white/10 rounded-xl font-bold transition-all hover:-translate-y-1 flex items-center justify-center gap-2 text-lg border-2 border-emerald/30 text-emerald">
+                    <i class="fa-brands fa-whatsapp text-xl"></i> Join WhatsApp
+                </a>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-20 border-y border-slate-200 dark:border-white/10 py-10" data-aos="fade-up" data-aos-delay="200">
+            <div>
+                <div class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-1"><span class="counter" data-target="85040">0</span>+</div>
+                <div class="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Downloads</div>
+            </div>
+            <div>
+                <div class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-1"><span class="counter" data-target="8">0</span></div>
+                <div class="text-sm font-medium text-slate-500 uppercase tracking-wider">Curated Modpacks</div>
+            </div>
+            <div>
+                <div class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-1">1.21+</div>
+                <div class="text-sm font-medium text-slate-500 uppercase tracking-wider">MC Versions</div>
+            </div>
+            <div>
+                <div class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-1"><span class="counter" data-target="25">0</span>+</div>
+                <div class="text-sm font-medium text-slate-500 uppercase tracking-wider">Tested Devices</div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Featured Modpack Section -->
+        <section id="featured" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <h2 class="text-2xl font-bold mb-6 flex items-center gap-2" data-aos="fade-right">
+                <i class="fa-solid fa-star text-accentO"></i> Latest Featured Release
+            </h2>
+            
+            <div class="glass rounded-3xl p-1 overflow-hidden relative" data-aos="fade-up">
+                <!-- Inner card -->
+                <div class="bg-gradient-to-br from-slate-100 to-white dark:from-slate-800 dark:to-slate-900 rounded-[22px] p-6 md:p-10 relative overflow-hidden">
+                    <!-- Decor -->
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-electric/20 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 relative z-10">
+                        <!-- Info -->
+                        <div class="lg:col-span-2">
+                            <div class="flex flex-wrap items-center gap-2 mb-4">
+                                <span class="px-3 py-1 bg-electric/20 text-electric text-xs font-bold rounded-full">New Update</span>
+                                <span class="px-3 py-1 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-full"><i class="fa-solid fa-cube"></i> MC 1.21.11</span>
+                                <span class="px-3 py-1 bg-accentP/20 text-accentP text-xs font-bold rounded-full"><i class="fa-solid fa-gear"></i> Fabric 0.19.2</span>
+                            </div>
+                            <h3 class="text-3xl md:text-4xl font-extrabold mb-4">Modpack News</h3>
+                            <p class="text-slate-600 dark:text-slate-400 mb-6 text-lg">The absolute cutting edge of performance modifications. Packed with the latest Sodium builds, memory optimizations, and rendering overhauls designed for maximum FPS stability.</p>
+                            
+                            <ul class="space-y-2 mb-8">
+                                <li class="flex items-center gap-2 text-slate-700 dark:text-slate-300"><i class="fa-solid fa-mobile-screen text-emerald"></i> <strong>Tested Device:</strong> Redmi Note 10s (Root)</li>
+                                <li class="flex items-center gap-2 text-slate-700 dark:text-slate-300"><i class="fa-solid fa-calendar text-electric"></i> <strong>Release Date:</strong> May 15, 2026</li>
+                            </ul>
+                            
+                            <a href="https://drive.google.com/file/d/1xVY9kgJILxl4LFOPrKsduSS5gblvqNNY/view?usp=sharing" target="_blank" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-electric to-blue-600 text-white rounded-xl font-bold shadow-lg shadow-electric/30 hover:scale-105 transition-transform">
+                                <i class="fa-brands fa-google-drive"></i> Download via Google Drive
+                            </a>
+                        </div>
+                        
+                        <!-- Visual/Stats -->
+                        <div class="flex flex-col justify-center gap-4">
+                            <div class="glass p-4 rounded-2xl flex items-center justify-between">
+                                <div>
+                                    <div class="text-sm text-slate-500 font-medium">Est. Performance</div>
+                                    <div class="text-xl font-bold text-emerald">High / Stable FPS</div>
+                                </div>
+                                <i class="fa-solid fa-gauge-high text-3xl text-emerald/50"></i>
+                            </div>
+                            <div class="glass p-4 rounded-2xl flex items-center justify-between">
+                                <div>
+                                    <div class="text-sm text-slate-500 font-medium">Downloads</div>
+                                    <div class="text-xl font-bold text-electric"><span class="counter" data-target="15243">0</span></div>
+                                </div>
+                                <i class="fa-solid fa-cloud-arrow-down text-3xl text-electric/50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Modpacks Catalog -->
+        <section id="modpacks" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-slate-200 dark:border-white/5">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-10 gap-6" data-aos="fade-up">
+                <div>
+                    <h2 class="text-3xl font-bold mb-2">All Modpacks</h2>
+                    <p class="text-slate-500">Find the perfect combination of mods for your device.</p>
+                </div>
+                
+                <!-- Filters -->
+                <div class="flex flex-wrap gap-3 w-full md:w-auto">
+                    <div class="relative flex-1 md:w-64">
+                        <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="search-input" placeholder="Search modpacks..." class="w-full pl-10 pr-4 py-2 glass rounded-lg focus:outline-none focus:border-electric focus:ring-1 focus:ring-electric text-sm dark:bg-midnight/50 dark:text-white">
+                    </div>
+                    <select id="version-filter" class="glass px-3 py-2 rounded-lg focus:outline-none text-sm dark:bg-midnight/80 dark:text-white appearance-none cursor-pointer">
+                        <option value="all">All Versions</option>
+                        <option value="1.26.1.2">1.26.1.2</option>
+                        <option value="1.26.1.1">1.26.1.1</option>
+                        <option value="1.21.11">1.21.11</option>
+                        <option value="1.21.6">1.21.6</option>
+                        <option value="1.21.5">1.21.5</option>
+                        <option value="1.21">1.21</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Grid -->
+            <div id="modpack-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dynamically populated via JS -->
+            </div>
+            
+            <!-- Empty State -->
+            <div id="empty-state" class="hidden py-20 text-center">
+                <i class="fa-solid fa-ghost text-6xl text-slate-300 dark:text-slate-700 mb-4"></i>
+                <h3 class="text-xl font-bold text-slate-600 dark:text-slate-400">No modpacks found.</h3>
+                <p class="text-slate-500 mt-2">Try adjusting your filters or search term.</p>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section id="faq" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+            <div class="text-center mb-12" data-aos="fade-up">
+                <h2 class="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
+                <p class="text-slate-500">Everything you need to know about our modpacks.</p>
+            </div>
+            
+            <div class="space-y-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="glass rounded-xl overflow-hidden glass-card">
+                    <button class="faq-btn w-full px-6 py-5 text-left font-semibold flex justify-between items-center focus:outline-none">
+                        How to install these modpacks?
+                        <i class="fa-solid fa-chevron-down text-slate-500 transition-transform duration-300"></i>
+                    </button>
+                    <div class="faq-content hidden px-6 pb-5 text-slate-600 dark:text-slate-400 text-sm border-t border-slate-200 dark:border-white/5 pt-4">
+                        Download the `.zip` file from the provided links. If you are using PojavLauncher or similar on Android, extract the files directly into your `.minecraft` directory, replacing existing config and mods folders. Ensure you have the matching Fabric loader installed first!
+                    </div>
+                </div>
+                
+                <div class="glass rounded-xl overflow-hidden glass-card">
+                    <button class="faq-btn w-full px-6 py-5 text-left font-semibold flex justify-between items-center focus:outline-none">
+                        Which Fabric Loader version is required?
+                        <i class="fa-solid fa-chevron-down text-slate-500 transition-transform duration-300"></i>
+                    </button>
+                    <div class="faq-content hidden px-6 pb-5 text-slate-600 dark:text-slate-400 text-sm border-t border-slate-200 dark:border-white/5 pt-4">
+                        Each modpack card specifies the exact Fabric Loader version needed (e.g., 0.19.2, 0.16.14, 0.8.14). It is crucial to use the exact version listed to prevent game crashes.
+                    </div>
+                </div>
+                
+                <div class="glass rounded-xl overflow-hidden glass-card">
+                    <button class="faq-btn w-full px-6 py-5 text-left font-semibold flex justify-between items-center focus:outline-none">
+                        Which modpack is best for low-end devices?
+                        <i class="fa-solid fa-chevron-down text-slate-500 transition-transform duration-300"></i>
+                    </button>
+                    <div class="faq-content hidden px-6 pb-5 text-slate-600 dark:text-slate-400 text-sm border-t border-slate-200 dark:border-white/5 pt-4">
+                        We highly recommend the "Modpack Sodium" (MC 1.21) or specifically checking descriptions for Helio G95 tested packs. These are highly optimized to reduce rendering overhead.
+                    </div>
+                </div>
+                
+                <div class="glass rounded-xl overflow-hidden glass-card">
+                    <button class="faq-btn w-full px-6 py-5 text-left font-semibold flex justify-between items-center focus:outline-none">
+                        Do I need root access?
+                        <i class="fa-solid fa-chevron-down text-slate-500 transition-transform duration-300"></i>
+                    </button>
+                    <div class="faq-content hidden px-6 pb-5 text-slate-600 dark:text-slate-400 text-sm border-t border-slate-200 dark:border-white/5 pt-4">
+                        Root is NOT required to play Minecraft or use these modpacks. However, some performance metrics (like 170+ FPS) were achieved on rooted devices running custom kernel performance tweaks alongside the modpack.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Community Section -->
+        <section id="community" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-slate-200 dark:border-white/5 text-center">
+            <h2 class="text-3xl font-bold mb-4" data-aos="fade-up">Join the Community</h2>
+            <p class="text-slate-500 mb-10 max-w-xl mx-auto" data-aos="fade-up">Get updates, report bugs, or chat with other players in our active community groups.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto" data-aos="fade-up" data-aos-delay="100">
+                <a href="https://whatsapp.com/channel/0029VbBhyH347Xe8WNtwwL2j" target="_blank" class="glass glass-card p-8 rounded-2xl flex flex-col items-center gap-4 group">
+                    <div class="w-16 h-16 rounded-full bg-emerald/10 text-emerald flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">
+                        <i class="fa-brands fa-whatsapp"></i>
+                    </div>
+                    <h3 class="font-bold text-lg">WhatsApp Group</h3>
+                    <p class="text-xs text-slate-500">Join the active discussion</p>
+                </a>
+                
+                <a href="https://www.tiktok.com/@giovmare" target="_blank" class="glass glass-card p-8 rounded-2xl flex flex-col items-center gap-4 group cursor-pointer">
+                    <div class="w-16 h-16 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">
+                        <i class="fa-brands fa-tiktok"></i>
+                    </div>
+                    <h3 class="font-bold text-lg">TikTok</h3>
+                    <p class="text-xs text-slate-500">Watch performance tests</p>
+                </a>
+                
+                <a href="https://github.com/irgi-informatics-umc" target="_blank" class="glass glass-card p-8 rounded-2xl flex flex-col items-center gap-4 group cursor-pointer">
+                    <div class="w-16 h-16 rounded-full bg-slate-500/10 text-slate-600 dark:text-slate-300 flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">
+                        <i class="fa-brands fa-github"></i>
+                    </div>
+                    <h3 class="font-bold text-lg">GitHub</h3>
+                    <p class="text-xs text-slate-500">Contribute & report issues</p>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-200 dark:border-white/5 bg-white/50 dark:bg-midnight/50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-cube text-electric text-2xl"></i>
+                    <span class="font-bold text-xl tracking-tight text-slate-900 dark:text-white">Gyzenn <span class="text-electric">Hub</span></span>
+                </div>
+                
+                <div class="flex flex-wrap justify-center gap-6 text-sm font-medium text-slate-500">
+                    <a href="#" class="hover:text-electric transition-colors">About</a>
+                    <a href="#" class="hover:text-electric transition-colors">Privacy Policy</a>
+                    <a href="#" class="hover:text-electric transition-colors">Terms</a>
+                    <a href="#" class="hover:text-electric transition-colors">Disclaimer</a>
+                </div>
+            </div>
+            <div class="mt-8 text-center text-sm text-slate-500 border-t border-slate-200 dark:border-white/10 pt-8">
+                Copyright &copy; 2026 Gyzenn Modpack Hub. Developed by Irgi. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modpack Detail Modal -->
+    <div id="modpack-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+        <div class="modal-content glass w-full max-w-2xl rounded-2xl shadow-2xl border border-white/20 relative max-h-[90vh] overflow-y-auto">
+            <!-- Close btn -->
+            <button onclick="closeModal()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 text-slate-500 hover:text-white hover:bg-red-500 transition-colors z-10">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div class="p-6 md:p-8" id="modal-body">
+                <!-- Content injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- UI Elements -->
+    <div id="toast-container"></div>
+    
+    <button id="back-to-top" class="fixed bottom-6 right-6 w-12 h-12 bg-electric text-white rounded-full shadow-lg shadow-electric/30 flex items-center justify-center hover:bg-blue-600 transition-colors z-40">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // --- Data: Modpacks ---
+        const modpacksData = [
+            {
+                id: 1,
+                title: "New Modpack",
+                mc_version: "1.21.6",
+                loader: "Fabric",
+                device: "Universal",
+                fps: "Standard",
+                desc: "A fresh modpack designed for Minecraft Java 1.21.6. Includes essential performance mods to stabilize your game without altering vanilla mechanics.",
+                links: [
+                    { name: "Download (Mediafire)", url: "https://www.mediafire.com/file/lo0m60sm6gwj3s6/ModpackByGua.zip/file", icon: "fa-fire" }
+                ]
+            },
+            {
+                id: 2,
+                title: "Sodium Modpack",
+                mc_version: "1.26.1.1",
+                loader: "Fabric",
+                device: "Universal",
+                fps: "High FPS",
+                desc: "Massive 59 Mods + Config setup. Pushes the boundaries of Minecraft 1.26.1.1 with heavily configured Sodium settings for maximum frame rendering.",
+                links: [
+                    { name: "Download Link 1 (Mediafire)", url: "https://www.mediafire.com/file/72wp5bi3vkt3rbf/Modpack_26.1.1.zip/file", icon: "fa-fire" },
+                    { name: "Download Link 2 (GDrive)", url: "https://drive.google.com/file/d/1uyZjYZUfPEW4dUasPzXEvuqrdg8M9j7R/view?usp=sharing", icon: "fa-google-drive" }
+                ]
+            },
+            {
+                id: 3,
+                title: "Modpack By Gyzenn",
+                mc_version: "1.21.5",
+                loader: "Fabric 0.19.2",
+                device: "Multi-Tier",
+                fps: "Optimized",
+                desc: "My signature modpack for 1.21.5. Comes in two flavors: High-End for visual fidelity with decent FPS, and Mid-Range for pure stable performance.",
+                links: [
+                    { name: "High-End Devices (Mediafire)", url: "https://www.mediafire.com/file/cyrvwiwugoxccyo/Modpack_1.21.5_HighEnd.zip/file", icon: "fa-bolt" },
+                    { name: "Mid-Range Devices (GDrive)", url: "https://drive.google.com/file/d/1kUlTvddtg_pkvxLltN0TnPNYLapBeHOw/view?usp=sharing", icon: "fa-mobile-screen" }
+                ]
+            },
+            {
+                id: 4,
+                title: "Sodium x Action And Stuff",
+                mc_version: "1.21.11",
+                loader: "Fabric 0.8.14",
+                device: "Redmi Note 10s (Root)",
+                fps: "80–170 FPS",
+                desc: "A powerful combination of Sodium performance with Action & Stuff animations. Tested heavily on Redmi Note 10s achieving impressive 80-170 FPS spikes.",
+                links: [
+                    { name: "Download (Mediafire)", url: "https://www.mediafire.com/file/la50j1puphne8a9/Modpek_ActionAndStuff.zip/file", icon: "fa-fire" }
+                ]
+            },
+            {
+                id: 5,
+                title: "Modpack Sodium",
+                mc_version: "1.21",
+                loader: "Fabric 0.16.14",
+                device: "Redmi Note 10s",
+                fps: "Stable",
+                desc: "A robust backport for base 1.21. Perfectly configured for mid-range devices like the Redmi Note 10s to eliminate stuttering in loaded chunks.",
+                links: [
+                    { name: "Download (Mediafire)", url: "https://www.mediafire.com/file/tifxhxjyt4ec1fi/Modpack-Sodium.zip/file", icon: "fa-fire" }
+                ]
+            },
+            {
+                id: 6,
+                title: "Modpack Sodium (Extreme)",
+                mc_version: "1.21.5",
+                loader: "Fabric 0.19.2",
+                device: "Helio G95",
+                fps: "240 FPS",
+                desc: "Extreme performance tweak specifically targeting Helio G95 chipsets. Bypasses standard rendering bottlenecks to achieve an incredible 240 FPS peak.",
+                links: [
+                    { name: "Download (Mediafire)", url: "https://www.mediafire.com/file/9yv3y9c81js25q9/Modpack_Sodium.zip/file", icon: "fa-rocket" }
+                ]
+            },
+            {
+                id: 7,
+                title: "SodiumPack",
+                mc_version: "1.26.1.2",
+                loader: "Fabric 0.19.2",
+                device: "Helio G95",
+                fps: "Optimized",
+                desc: "The latest Sodium setup compiled for 1.26.1.2. Excellent hardware utilization tailored for MediaTek Helio G95 architecture.",
+                links: [
+                    { name: "Download (Mediafire)", url: "https://www.mediafire.com/file/0j42vbdjhaxvkj1/Modpack_26.1.2.zip/file", icon: "fa-fire" }
+                ]
+            }
+        ];
+
+        // --- Init ---
+        document.addEventListener('DOMContentLoaded', () => {
+            AOS.init({ once: true, offset: 50, duration: 600, easing: 'ease-out-cubic' });
+            initTheme();
+            renderModpacks();
+            initCounters();
+            setupFilters();
+            setupFAQ();
+        });
+
+        // --- Theme ---
+        function initTheme() {
+            const storedTheme = localStorage.getItem('gyzenn_theme') || 'dark';
+            if (storedTheme === 'dark') document.documentElement.classList.add('dark');
+            else document.documentElement.classList.remove('dark');
+        }
+
+        const toggleTheme = () => {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('gyzenn_theme', isDark ? 'dark' : 'light');
+            showToast(`${isDark ? 'Dark' : 'Light'} mode enabled`, 'info');
+        };
+
+        document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+        document.getElementById('mobile-theme-toggle').addEventListener('click', toggleTheme);
+
+        // --- Mobile Drawer Navigation ---
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const closeDrawerBtn = document.getElementById('close-drawer-btn');
+        const mobileDrawer = document.getElementById('mobile-drawer');
+        const mobileOverlay = document.getElementById('mobile-overlay');
+        const mobileLinks = document.querySelectorAll('.mobile-link');
+
+        function openMobileMenu() {
+            mobileDrawer.classList.add('open');
+            mobileOverlay.classList.add('show');
+            document.body.classList.add('menu-open');
+            mobileDrawer.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeMobileMenu() {
+            mobileDrawer.classList.remove('open');
+            mobileOverlay.classList.remove('show');
+            document.body.classList.remove('menu-open');
+            mobileDrawer.setAttribute('aria-hidden', 'true');
+        }
+
+        function toggleMobileMenu() {
+            if (mobileDrawer.classList.contains('open')) {
+                closeMobileMenu();
+            } else {
+                openMobileMenu();
+            }
+        }
+
+        mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+        closeDrawerBtn.addEventListener('click', closeMobileMenu);
+        mobileOverlay.addEventListener('click', closeMobileMenu);
+        
+        // Close menu when clicking a link
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', closeMobileMenu);
+        });
+
+        // Close menu on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && mobileDrawer.classList.contains('open')) {
+                closeMobileMenu();
+            }
+        });
+
+        // --- Render Modpacks ---
+        function renderModpacks(filterText = '', filterVersion = 'all') {
+            const grid = document.getElementById('modpack-grid');
+            const emptyState = document.getElementById('empty-state');
+            grid.innerHTML = '';
+
+            const filtered = modpacksData.filter(mp => {
+                const matchText = mp.title.toLowerCase().includes(filterText.toLowerCase());
+                const matchVer = filterVersion === 'all' || mp.mc_version === filterVersion;
+                return matchText && matchVer;
+            });
+
+            if (filtered.length === 0) {
+                grid.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            grid.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+
+            filtered.forEach((mp, index) => {
+                const delay = (index % 3) * 100;
+                const fakeDownloads = Math.floor(Math.random() * 8000) + 1000;
+                
+                const card = document.createElement('div');
+                card.className = 'glass glass-card rounded-2xl p-6 flex flex-col h-full';
+                card.setAttribute('data-aos', 'fade-up');
+                card.setAttribute('data-aos-delay', delay);
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="px-2 py-1 bg-slate-200 dark:bg-slate-700 rounded text-xs font-bold text-slate-700 dark:text-slate-300">
+                            v${mp.mc_version}
+                        </div>
+                        <div class="text-xs font-semibold text-emerald bg-emerald/10 px-2 py-1 rounded flex items-center gap-1">
+                            <i class="fa-solid fa-download"></i> <span class="counter" data-target="${fakeDownloads}">0</span>
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">${mp.title}</h3>
+                    <div class="text-sm text-electric font-medium mb-3"><i class="fa-solid fa-microchip"></i> ${mp.loader}</div>
+                    <p class="text-slate-500 text-sm mb-6 flex-grow line-clamp-3">${mp.desc}</p>
+                    <div class="mt-auto border-t border-slate-200 dark:border-white/10 pt-4 flex justify-between items-center">
+                        <span class="text-xs text-slate-400"><i class="fa-solid fa-mobile-screen"></i> ${mp.device}</span>
+                        <button onclick="openModal(${mp.id})" class="px-4 py-2 bg-electric/10 hover:bg-electric text-electric hover:text-white rounded-lg text-sm font-bold transition-colors">
+                            Details
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            
+            // Re-init counters for newly rendered elements
+            initCounters(grid);
+        }
+
+        // --- Filters ---
+        function setupFilters() {
+            const searchInput = document.getElementById('search-input');
+            const versionSelect = document.getElementById('version-filter');
+
+            const applyFilters = () => renderModpacks(searchInput.value, versionSelect.value);
+
+            searchInput.addEventListener('input', applyFilters);
+            versionSelect.addEventListener('change', applyFilters);
+        }
+
+        // --- Modal ---
+        const modal = document.getElementById('modpack-modal');
+        function openModal(id) {
+            const mp = modpacksData.find(m => m.id === id);
+            if (!mp) return;
+
+            let linksHTML = mp.links.map(l => `
+                <a href="${l.url}" target="_blank" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-electric dark:hover:bg-electric text-slate-800 dark:text-white rounded-xl font-semibold transition-colors border border-slate-200 dark:border-white/10 group">
+                    <i class="fa-solid ${l.icon} text-electric group-hover:text-white transition-colors"></i> ${l.name}
+                </a>
+            `).join('');
+
+            document.getElementById('modal-body').innerHTML = `
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-electric/20 text-electric flex items-center justify-center text-2xl">
+                        <i class="fa-solid fa-box-open"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold leading-tight">${mp.title}</h2>
+                        <div class="text-sm text-emerald font-medium">MC Version: ${mp.mc_version}</div>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 mb-6 border border-slate-200 dark:border-white/5">
+                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">${mp.desc}</p>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div class="glass p-3 rounded-lg">
+                        <div class="text-xs text-slate-500 mb-1">Loader</div>
+                        <div class="font-semibold text-sm">${mp.loader}</div>
+                    </div>
+                    <div class="glass p-3 rounded-lg">
+                        <div class="text-xs text-slate-500 mb-1">Target FPS</div>
+                        <div class="font-semibold text-sm text-accentO">${mp.fps}</div>
+                    </div>
+                    <div class="glass p-3 rounded-lg col-span-2">
+                        <div class="text-xs text-slate-500 mb-1">Target Device / Hardware</div>
+                        <div class="font-semibold text-sm">${mp.device}</div>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <h4 class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-2">Download Links</h4>
+                    ${linksHTML}
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+            // small delay to allow display:block to apply before animating opacity/transform
+            setTimeout(() => modal.classList.add('show'), 10);
+        }
+
+        function closeModal() {
+            modal.classList.remove('show');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        // --- Utils: Counters ---
+        function initCounters(container = document) {
+            const counters = container.querySelectorAll('.counter');
+            const speed = 100; 
+
+            const animate = (counter) => {
+                const target = +counter.getAttribute('data-target');
+                const count = +counter.innerText.replace(/,/g, '');
+                const inc = Math.max(1, Math.ceil(target / speed));
+
+                if (count < target) {
+                    counter.innerText = (count + inc).toLocaleString();
+                    requestAnimationFrame(() => animate(counter));
+                } else {
+                    counter.innerText = target.toLocaleString();
+                }
+            };
+
+            const observer = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animate(entry.target);
+                        obs.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            counters.forEach(c => observer.observe(c));
+        }
+
+        // --- Utils: FAQ ---
+        function setupFAQ() {
+            document.querySelectorAll('.faq-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const content = btn.nextElementSibling;
+                    const icon = btn.querySelector('i');
+                    content.classList.toggle('hidden');
+                    
+                    if(content.classList.contains('hidden')) {
+                        icon.style.transform = 'rotate(0deg)';
+                        btn.classList.remove('text-electric');
+                    } else {
+                        icon.style.transform = 'rotate(180deg)';
+                        btn.classList.add('text-electric');
+                    }
+                });
+            });
+        }
+
+        // --- Utils: Toast & Scroll ---
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let icon = 'fa-info-circle text-electric';
+            let borderClass = 'border-electric/30';
+            
+            if(type === 'success') { icon = 'fa-check-circle text-emerald'; borderClass = 'border-emerald/30'; }
+
+            toast.className = `toast glass px-4 py-3 rounded-xl shadow-lg border flex items-center gap-3 ${borderClass} text-slate-900 dark:text-white text-sm font-medium z-50`;
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add('show'));
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+
+        const backToTopBtn = document.getElementById('back-to-top');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 400) backToTopBtn.classList.add('visible');
+            else backToTopBtn.classList.remove('visible');
+        });
+        backToTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+    </script>
+</body>
+</html>
